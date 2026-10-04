@@ -2,6 +2,7 @@ package com.example.sse.basic
 
 import com.example.sse.Notification
 import org.springframework.http.MediaType
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.io.IOException
@@ -41,6 +42,12 @@ class BasicNotificationService {
 
 	fun subscriberCount(): Int = emitters.size
 
+	// 프록시/로드밸런서가 유휴 연결을 끊지 않도록 주기적으로 주석(comment)을 보낸다
+	@Scheduled(fixedRate = HEARTBEAT_MILLIS)
+	fun heartbeat() {
+		emitters.forEach { send(it, SseEmitter.event().comment("heartbeat")) }
+	}
+
 	// 이벤트 조립: 전송은 하지 않는다
 	private fun toEvent(notification: Notification): SseEmitter.SseEventBuilder =
 		SseEmitter.event()
@@ -58,5 +65,6 @@ class BasicNotificationService {
 
 	companion object {
 		private const val TIMEOUT_MILLIS = 60_000L
+		private const val HEARTBEAT_MILLIS = 15_000L
 	}
 }
