@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ko">
+<head>
+	<meta charset="utf-8">
+	<title>SSE 알림 예제</title>
+</head>
+<body>
+	<h1>SSE 알림 예제</h1>
+	<p>
+		<label><input type="radio" name="type" value="basic" checked> basic (재전송 없음)</label>
+		<label><input type="radio" name="type" value="replay"> replay (Last-Event-ID 재전송)</label>
+	</p>
+	<p>상태: <span id="status">연결 중...</span></p>
+	<p>구독자 수: <span id="count">-</span> <small>(5초마다 조회)</small></p>
+	<form id="form">
+		<input id="message" placeholder="알림 메시지" required>
+		<button>발행</button>
+	</form>
+	<ul id="list"></ul>
+
+	<script>
+		const status = document.getElementById('status');
+		const list = document.getElementById('list');
+		const count = document.getElementById('count');
+		let type = 'basic';
+		let source = null;
+
+		// EventSource: 끊기면 자동 재연결하고, 마지막으로 받은 id(있으면)를 Last-Event-ID 헤더로 보낸다
+		function connect() {
+			if (source) source.close();
+			list.innerHTML = '';
+			status.textContent = '연결 중...';
+
+			source = new EventSource(`/${type}/notifications/subscribe`);
+			source.addEventListener('connect', () => {
+				status.textContent = `연결됨 (${type})`;
+				refreshCount();
+			});
+			source.addEventListener('notification', (e) => {
+				const n = JSON.parse(e.data);
+				const li = document.createElement('li');
+				li.textContent = `#${n.id} ${n.message} (${n.createdAt})`;
+				list.prepend(li);
+			});
+			source.onerror = () => status.textContent = '재연결 중...';
+		}
+
+		// 구독자 수: 서버의 emitters 크기를 REST로 주기 조회 (끊긴 연결은 heartbeat 두 번, 약 30초 뒤 줄어듦)
+		async function refreshCount() {
+			const res = await fetch(`/${type}/notifications/subscribers`);
+			count.textContent = await res.text();
+		}
+		setInterval(refreshCount, 5000);
+
+		document.querySelectorAll('input[name="type"]').forEach((radio) =>
+			radio.addEventListener('change', (e) => {
+				type = e.target.value;
+				connect();
+			}));
+
+		document.getElementById('form').addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const input = document.getElementById('message');
+			await fetch(`/${type}/notifications`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ message: input.value }),
+			});
+			input.value = '';
+		});
+
+		connect();
+	</script>
+</body>
+</html>
