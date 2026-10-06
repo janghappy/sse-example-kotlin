@@ -120,3 +120,4 @@ data:{"id":1,"message":"replay-1","createdAt":"2026-10-22T13:08:19.978898075+09:
 ## 문서
 
 - [SseEmitter 동작과 연결 관리](docs/sse-emitter.md): emitter와 emitters, return emitter의 의미, 반환 전 send 버퍼링, connect 이벤트가 필요한 이유, 끊긴 연결 정리(heartbeat, 타임아웃)와 감지 시점 추적
+- [Last-Event-ID 재연결과 놓친 알림 재전송](docs/sse-reconnect.md): 표준과 직접 구현의 경계, 이벤트 순번(Kafka offset 비교), 최초 접속 위치, 보관량(100개)과 한계, 실무 보완, WebSocket 비교, 재연결 시 REST 재동기화 패턴
