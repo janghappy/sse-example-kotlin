@@ -117,3 +117,6 @@ data:{"id":1,"message":"replay-1","createdAt":"2026-10-22T13:08:19.978898075+09:
 - **history**: 최근 알림 100개를 메모리에 보관합니다. 실시간 발송에는 쓰지 않고, 재연결 시 재전송용으로만 읽는 아카이브입니다.
 - **재전송**: 구독 요청에 `Last-Event-ID`가 있으면 그 이후 알림을 먼저 보냅니다. `Last-Event-ID: 1`로 구독하면 `id:2`부터 받는 것을 확인했습니다. 같은 헤더를 basic에 보내면 무시됩니다.
 
+## 문서
+
+- [SseEmitter 동작과 연결 관리](docs/sse-emitter.md): emitter와 emitters, return emitter의 의미, 반환 전 send 버퍼링, connect 이벤트가 필요한 이유, 끊긴 연결 정리(heartbeat, 타임아웃)와 감지 시점 추적
